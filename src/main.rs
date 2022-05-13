@@ -1,6 +1,8 @@
-use std::collections::HashMap;
+use core::num;
+use std::collections::{BinaryHeap, HashMap};
 use std::env;
 use std::hash::Hash;
+use std::iter::TakeWhile;
 use std::str;
 use std::str::Chars;
 
@@ -41,16 +43,279 @@ fn main() {
     //     )
     // );
 
-    let a = ListNode::new(1);
+    // let a = ListNode::new(5);
 
-    let mut b = ListNode::new(1);
-    b.next = Some(Box::new(a));
-    let mut c = ListNode::new(2);
-    c.next = Some(Box::new(b));
-    let mut d = ListNode::new(1);
-    d.next = Some(Box::new(c));
+    // let mut b = ListNode::new(4);
+    // b.next = Some(Box::new(a));
+    // let mut c = ListNode::new(3);
+    // c.next = Some(Box::new(b));
+    // let mut d = ListNode::new(2);
+    // d.next = Some(Box::new(c));
+    // let mut e = ListNode::new(1);
+    // e.next = Some(Box::new(d));
 
-    println!("{}", is_palindrome(Some(Box::new(d))));
+    // println!("{}", is_palindrome(Some(Box::new(d))));
+
+    // println!("{:?}", middle_node(Some(Box::new(d))));
+
+    // println!("{}", search(vec![-1, 0, 3, 5, 9, 12], 9));
+
+    // println!("{}", search_insert(vec![1, 3, 5, 6], 2));
+    // println!("{:?}", sorted_squares_easy(vec![-7, -3, 2, 3, 11]));
+    // println!("{:?}", sorted_squares_two_pointers(vec![-7, -3, 2, 3, 11]));
+    // rotate_with_loop(&mut vec![1, 2, 3, 4, 5, 6, 7], 3);
+    // println!("{:?}", rotate_with_enumerate(&mut vec![1, 2, 3, 4, 5, 6, 7], 3));
+    // println!(
+    //     "{:?}",
+    //     rotate_with_split_at(&mut vec![1, 2, 3, 4, 5, 6, 7], 3)
+    // );
+    // println!("{:?}", rotate_with_split_at(&mut vec![-1], 2));
+    // println!("{:?}", move_zeroes(&mut vec![0]));
+    // println!("{:?}", move_zeroes_smarter(&mut vec![0, 1, 0, 3, 12]));
+    // println!("{:?}", move_zeroes_smartest(&mut vec![0, 1, 0, 3, 12]));
+    // println!(
+    //     "{:?}",
+    //     two_sum(
+    //         vec![
+    //             12, 13, 23, 28, 43, 44, 59, 60, 61, 68, 70, 86, 88, 92, 124, 125, 136, 168, 173,
+    //             173, 180, 199, 212, 221, 227, 230, 277, 282, 306, 314, 316, 321, 325, 328, 336,
+    //             337, 363, 365, 368, 370, 370, 371, 375, 384, 387, 394, 400, 404, 414, 422, 422,
+    //             427, 430, 435, 457, 493, 506, 527, 531, 538, 541, 546, 568, 583, 585, 587, 650,
+    //             652, 677, 691, 730, 737, 740, 751, 755, 764, 778, 783, 785, 789, 794, 803, 809,
+    //             815, 847, 858, 863, 863, 874, 887, 896, 916, 920, 926, 927, 930, 933, 957, 981,
+    //             997, 1000
+    //         ],
+    //         542
+    //     )
+    // );
+    // println!("{:?}", two_sum(vec![2, 7, 11, 15], 9));
+    // println!("{}", count_odds(8, 10));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_count_odds_two_odd_numbers() {
+        assert_eq!(count_odds(3, 7), 3);
+    }
+
+    #[test]
+    fn test_count_odds_two_even_numbers() {
+        assert_eq!(count_odds(2, 10), 4);
+    }
+
+    #[test]
+    fn test_count_odds_one_odd_one_even_number() {
+        assert_eq!(count_odds(2, 11), 5);
+    }
+}
+
+pub fn count_odds(low: i32, high: i32) -> i32 {
+    if low % 2 == 0 && high % 2 == 0 {
+        return (high - low) / 2;
+    } else {
+        return ((high - low) / 2) + 1;
+    }
+}
+
+pub fn two_sum_different(numbers: Vec<i32>, target: i32) -> Vec<i32> {
+    let mut first: usize = 0;
+    let mut second: usize = numbers.len() - 1;
+    let mut count = 0;
+
+    while first < second {
+        count += 1;
+        if numbers[second] > target {
+            second -= 1;
+            continue;
+        }
+        if target - numbers[second] < numbers[first] {
+            second -= 1;
+        }
+
+        if numbers[first] + numbers[second] == target {
+            break;
+        } else if numbers[first] + numbers[second] < target {
+            first += 1;
+        } else {
+            second -= 1;
+        }
+    }
+    println!("{}", count);
+    return Vec::from([first as i32 + 1, second as i32 + 1]);
+}
+
+pub fn two_sum(numbers: Vec<i32>, target: i32) -> Vec<i32> {
+    let mut left: usize = 0;
+    let mut right: usize = numbers.len() - 1;
+    while numbers[left] + numbers[right] != target {
+        // eliminate all numbers greater than the target
+        if numbers[right] > target {
+            right -= 1;
+        }
+        // eliminate all right numbers that are too big for current left numbers
+        else if target - numbers[right] < numbers[left] {
+            right -= 1;
+            continue;
+        }
+
+        if numbers[right] + numbers[left] > target {
+            right -= 1;
+        } else {
+            left += 1;
+        }
+    }
+
+    vec![(left + 1) as i32, (right + 1) as i32]
+}
+
+pub fn move_zeroes_smartest(nums: &mut Vec<i32>) {
+    let mut first_zero: usize = 0;
+
+    for index in 0..nums.len() {
+        if nums[index] != 0 {
+            nums.swap(index, first_zero);
+            first_zero += 1;
+        }
+    }
+    println!("{:?}", nums);
+}
+
+pub fn move_zeroes_smarter(nums: &mut Vec<i32>) {
+    let mut first_zero: usize = 0;
+    let mut index: usize = 0;
+    while index < nums.len() {
+        if nums.get(index).unwrap().ne(&0) {
+            nums.swap(index, first_zero);
+            first_zero += 1;
+        }
+        index += 1;
+    }
+    println!("{:?}", nums);
+}
+
+pub fn move_zeroes(nums: &mut Vec<i32>) {
+    let mut left: usize = 0;
+    let mut right = nums.len() - 1;
+    while left < right as usize {
+        if nums.get(left as usize).unwrap().eq(&0) {
+            nums.remove(left as usize);
+            nums.push(0);
+            right -= 1;
+        } else {
+            left += 1;
+        }
+    }
+    println!("{:?}", nums);
+}
+
+pub fn rotate_with_split_at(nums: &mut Vec<i32>, k: i32) {
+    let split = nums.split_at(nums.len() % k as usize);
+    println!("{:?}", split);
+    *nums = [split.1, split.0].concat();
+
+    println!("{:?}", nums);
+}
+
+pub fn rotate_with_enumerate(nums: &mut Vec<i32>, k: i32) {
+    let len = nums.len();
+
+    for (index, value) in nums.clone().iter().enumerate() {
+        nums[(index + k as usize) % len] = *value;
+    }
+    println!("{:?}", nums);
+}
+
+pub fn rotate_with_loop(nums: &mut Vec<i32>, k: i32) {
+    for _ in 0..k {
+        nums.insert(0, *nums.last().unwrap());
+        nums.pop();
+    }
+    println!("{:?}", nums);
+}
+
+pub fn sorted_squares_easy(nums: Vec<i32>) -> Vec<i32> {
+    let mut nums_sq = nums.clone();
+
+    nums_sq = nums_sq.iter().map(|x| x * x).collect();
+    nums_sq.sort();
+    nums_sq
+}
+
+pub fn sorted_squares_two_pointers(nums: Vec<i32>) -> Vec<i32> {
+    let mut left = 0;
+    let mut right = nums.len() - 1;
+
+    let mut answer = Vec::<i32>::new();
+    while left < right {
+        if nums[left].abs() > nums[right].abs() {
+            answer.push(nums[left] * nums[left]);
+            left += 1
+        } else {
+            answer.push(nums[right] * nums[right]);
+            right -= 1;
+        }
+    }
+    answer.push(nums[left] * nums[right]);
+    answer.into_iter().rev().collect()
+}
+
+pub fn search_insert(nums: Vec<i32>, target: i32) -> i32 {
+    // if target is less than 1st element
+    if target < nums[0] {
+        return 0;
+    }
+    // if target is greater than last element
+    if &target > nums.last().unwrap() {
+        return nums.len() as i32;
+    }
+    // if nums's length is 1
+    if nums.len() == 1 {
+        if nums[0] <= target {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+
+    let mut low = 0;
+    let mut high = nums.len() - 1;
+
+    while low < high {
+        let mid = (low + high) / 2;
+
+        if target == nums[mid] {
+            return mid as i32;
+        } else if target < nums[mid] {
+            high = mid;
+        } else {
+            low = mid + 1;
+        }
+    }
+
+    return low as i32;
+}
+
+pub fn middle_node(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
+    if head.as_ref().unwrap().next.eq(&None) {
+        return head;
+    }
+    let mut head_mut = head;
+
+    let mut head_mut_to_count = head_mut.as_ref();
+    let mut length: i32 = 0;
+    while let Some(node) = head_mut_to_count {
+        head_mut_to_count = node.next.as_ref();
+        length += 1;
+    }
+
+    for _ in 0..length / 2 {
+        head_mut = head_mut.unwrap().next;
+    }
+
+    head_mut
 }
 
 pub fn is_palindrome(head: Option<Box<ListNode>>) -> bool {
@@ -259,4 +524,28 @@ fn get_map_for_chars(target: Chars) -> HashMap<char, u16> {
     }
 
     target_map
+}
+
+pub fn search(nums: Vec<i32>, target: i32) -> i32 {
+    if nums[0] == target {
+        return 0;
+    } else if nums[nums.len() - 1] == target {
+        return (nums.len() - 1) as i32;
+    } else {
+        let target = target;
+        let mut lower = 0;
+        let mut upper = nums.len();
+
+        while lower < upper {
+            let middle = (lower + upper) / 2;
+            if target == nums[middle] {
+                return middle as i32;
+            } else if nums[middle] > target {
+                upper = middle;
+            } else {
+                lower = middle + 1;
+            }
+        }
+        -1
+    }
 }
